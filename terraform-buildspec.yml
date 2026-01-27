@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - curl -fsSL https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip -o terraform.zip
+      - unzip terraform.zip
+      - mv terraform /usr/local/bin/
+      - terraform --version
+      - pip install boto3
+  
+  pre_build:
+    commands:
+      - echo "Initializing Terraform..."
+      - terraform init
+  
+  build:
+    commands:
+      - echo "Planning Terraform deployment..."
+      - terraform plan -out=tfplan
+      - echo "Applying Terraform configuration..."
+      - terraform apply tfplan
+      - echo "Testing secure ML job after deployment..."
+      - python3 secure_ml_job.py
+  
+  post_build:
+    commands:
+      - echo "Deployment completed successfully"
+      - terraform output
+
+artifacts:
+  files:
+    - '**/*'
+    - tfplan

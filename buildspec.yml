@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - pip install truffleHog3
+  
+  pre_build:
+    commands:
+      - echo "Starting TruffleHog secret detection scan..."
+      - echo "=== ALL FILES IN REPOSITORY ==="
+      - find . -type f
+      - echo "=== PYTHON FILES BEING SCANNED ==="
+      - find . -name "*.py"
+  
+  build:
+    commands:
+      - echo "Running TruffleHog scan..."
+      - trufflehog3 --format json --output trufflehog-results.json .
+      - echo "=== SCAN RESULTS ==="
+      - cat trufflehog-results.json
+  
+  post_build:
+    commands:
+      - echo "Secret detection scan completed"
+      - if grep -q "secret" trufflehog-results.json; then echo "SECRETS DETECTED"; exit 1; else echo "No secrets found"; fi
+
+artifacts:
+  files:
+    - trufflehog-results.json
