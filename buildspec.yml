@@ -27,7 +27,9 @@ phases:
       - |
         if [ "${scan_failed:-0}" != "0" ]; then
           echo "SECRETS DETECTED - BUILD FAILED"
-          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "ALERT: Secrets detected in repository! Build failed." --subject "Secret Detection Alert" || true
+          SECRET_FILES=$(cat trufflehog-results.json 2>/dev/null | grep -o '"SourceMetadata":{[^}]*"file":"[^"]*"' | grep -o '"file":"[^"]*"' | cut -d'"' -f4 | sort -u | tr '\n' ', ' | sed 's/,$//')
+          MESSAGE="ALERT: Secrets detected in files: ${SECRET_FILES:-unknown files}. Build failed."
+          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "$MESSAGE" --subject "Secret Detection Alert" || true
           exit 1
         else
           echo "No secrets found"
