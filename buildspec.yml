@@ -25,7 +25,14 @@ phases:
       - echo "Scan completed with exit code ${scan_failed:-0}"
       - echo "Scan results:"
       - cat trufflehog-results.json 2>/dev/null || echo "No JSON results"
-      - test "${scan_failed:-0}" != "0" && echo "SECRETS DETECTED" && aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "ALERT: Secrets detected in files: demo.env, demo_secrets.py. Build failed." --subject "Secret Detection Alert" && exit 1 || echo "No secrets found"
+      - |
+        if [ "${scan_failed:-0}" != "0" ]; then
+          echo "SECRETS DETECTED"
+          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "ALERT: Secrets detected in repository. Build failed." --subject "Secret Detection Alert" || true
+          exit 1
+        else
+          echo "No secrets found"
+        fi
 
 artifacts:
   files:
