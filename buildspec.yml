@@ -7,7 +7,7 @@ phases:
     commands:
       - echo "Installing TruffleHog..."
       - pip install --upgrade pip
-      - pip install truffleHog3==3.0.0
+      - pip install truffleHog
   
   pre_build:
     commands:
@@ -20,10 +20,10 @@ phases:
   build:
     commands:
       - echo "Running TruffleHog scan..."
-      - trufflehog3 --format json --output trufflehog-results.json . || true
+      - trufflehog filesystem . --json > trufflehog-results.json || true
       - echo "=== SCAN RESULTS ==="
       - cat trufflehog-results.json || echo "No results file"
-      - if [ -s trufflehog-results.json ] && grep -q '"reason"' trufflehog-results.json; then echo "SECRETS DETECTED"; exit 1; fi
+      - if [ -s trufflehog-results.json ]; then echo "SECRETS DETECTED"; exit 1; fi
   
   post_build:
     commands:
