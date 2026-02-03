@@ -15,7 +15,7 @@ phases:
       - echo "Project $PROJECT_NAME"
       - echo "Build ID $CODEBUILD_BUILD_ID"
       - echo "=== REPOSITORY STRUCTURE ==="
-      - find . -type f -name "*.py" -o -name "*.tf" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" | head -20
+      - find . -type f -name "*.py" -o -name "*.tf" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" -o -name "*.env" | head -20
   
   build:
     commands:
@@ -23,8 +23,8 @@ phases:
       - trufflehog filesystem . --json --fail > trufflehog-results.json 2>&1 || scan_failed=$?
       - echo "=== SCAN RESULTS ==="
       - cat trufflehog-results.json 2>/dev/null || echo "No JSON results"
-      - echo "=== SCAN EXIT CODE: ${scan_failed:-0} ==="
-      - if [ "${scan_failed:-0}" != "0" ]; then echo "SECRETS DETECTED - BUILD FAILED"; exit 1; fi
+      - echo "=== SCAN EXIT CODE ${scan_failed:-0} ==="
+      - test "${scan_failed:-0}" != "0" && echo "SECRETS DETECTED - BUILD FAILED" && exit 1 || echo "No secrets found"
   
   post_build:
     commands:
