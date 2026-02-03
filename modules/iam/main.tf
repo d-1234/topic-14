@@ -117,6 +117,15 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Resource = [
           "arn:aws:s3:::${var.project_name}-*/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:Publish"
+        ]
+        Resource = [
+          "arn:aws:sns:*:*:${var.project_name}-pipeline-notifications"
+        ]
       }
     ]
   })
@@ -160,6 +169,25 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
         ]
         Resource = [
           "arn:aws:codestar-connections:*:*:connection/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = [
+          "arn:aws:kms:*:*:key/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:Publish"
+        ]
+        Resource = [
+          "arn:aws:sns:*:*:${var.project_name}-*"
         ]
       }
     ]

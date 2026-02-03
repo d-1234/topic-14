@@ -24,7 +24,7 @@ resource "aws_cloudwatch_event_rule" "pipeline_failure" {
 
   event_pattern = jsonencode({
     source      = ["aws.codepipeline"]
-    detail-type = ["CodePipeline Pipeline Execution State Change"]
+    detail-type = ["CodePipeline Stage Execution State Change"]
     detail = {
       pipeline = [var.pipeline_name]
       state    = ["FAILED"]
@@ -38,9 +38,36 @@ resource "aws_cloudwatch_event_rule" "pipeline_failure" {
   }
 }
 
+# CloudWatch Event Rule for CodeBuild failures
+resource "aws_cloudwatch_event_rule" "codebuild_failure" {
+  name = "${var.project_name}-codebuild-failure"
+  description = "Trigger notifications on CodeBuild failures"
+
+  event_pattern = jsonencode({
+    source      = ["aws.codebuild"]
+    detail-type = ["CodeBuild Build State Change"]
+    detail = {
+      build-status = ["FAILED"]
+      project-name = ["${var.project_name}-security-scan"]
+    }
+  })
+  
+  tags = {
+    Project     = var.project_name
+    Environment = "production"
+    Purpose     = "build-monitoring"
+  }
+}
+
 resource "aws_cloudwatch_event_target" "sns" {
   rule      = aws_cloudwatch_event_rule.pipeline_failure.name
   target_id = "SendToSNS"
+  arn       = aws_sns_topic.pipeline_notifications.arn
+}
+
+resource "aws_cloudwatch_event_target" "sns_codebuild" {
+  rule      = aws_cloudwatch_event_rule.codebuild_failure.name
+  target_id = "SendToSNSCodeBuild"
   arn       = aws_sns_topic.pipeline_notifications.arn
 }
 
@@ -54,7 +81,7 @@ resource "aws_sns_topic_policy" "pipeline_notifications_policy" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "events.amazonaws.com"
+          Service = ["events.amazonaws.com", "codebuild.amazonaws.com"]
         }
         Action   = "sns:Publish"
         Resource = aws_sns_topic.pipeline_notifications.arn

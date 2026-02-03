@@ -1,8 +1,18 @@
-# Production Configuration Template
-# Copy this file to terraform.tfvars and fill in your values
-# IMPORTANT: Never commit terraform.tfvars to version control
+# =============================================================================
+# SECRET DETECTION PIPELINE - CONFIGURATION TEMPLATE
+# =============================================================================
+# Copy this file to terraform.tfvars and customize with your values
+# IMPORTANT: Never commit terraform.tfvars to version control!
+# =============================================================================
 
-github_owner = "your-github-username"
-github_repo = "your-repository-name"
-github_branch = "main"
-notification_email = "your-email@company.com"
+# GitHub Repository Configuration
+github_owner = "your-github-username"     # Your GitHub username or organization
+github_repo = "your-repository-name"      # Repository name to monitor
+github_branch = "main"                    # Branch to monitor (main/master/develop)
+
+# Notification Settings
+notification_email = "your-email@company.com"  # Email for security alerts
+
+# Optional: AWS Configuration (uncomment to override defaults)
+# aws_region = "us-east-1"                 # AWS region for deployment
+# project_name = "ml-secrets-demo"         # Project name for resource naming

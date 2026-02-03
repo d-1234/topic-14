@@ -1,6 +1,6 @@
 # Secrets Manager secret for API keys
 resource "aws_secretsmanager_secret" "ml_api_key" {
-  name                    = "${var.project_name}/api-key-v3"
+  name                    = "${var.project_name}/api-key-v4"
   description             = "API key for ML service"
   recovery_window_in_days = 7
   

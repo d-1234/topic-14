@@ -1,44 +1,56 @@
+# =============================================================================
+# SECRET DETECTION PIPELINE - BUILD SPECIFICATION
+# =============================================================================
+# This buildspec defines the TruffleHog secret scanning process
+# =============================================================================
+
 version: 0.2
 
 phases:
+  # Install phase: Set up the scanning environment
   install:
     runtime-versions:
       python: 3.11
     commands:
-      - echo "Installing TruffleHog..."
+      - echo "🔧 Setting up secret detection environment..."
       - pip install --upgrade pip
       - pip install truffleHog
       - yum install -y jq
+      - echo "✅ Environment setup complete"
   
+  # Pre-build phase: Analyze repository structure
   pre_build:
     commands:
-      - echo "Starting TruffleHog secret detection scan..."
-      - echo "Project $PROJECT_NAME"
-      - echo "Build ID $CODEBUILD_BUILD_ID"
-      - echo "=== REPOSITORY STRUCTURE ==="
+      - echo "🔍 Starting TruffleHog secret detection scan..."
+      - echo "📋 Project: $PROJECT_NAME"
+      - echo "🏗️ Build ID: $CODEBUILD_BUILD_ID"
+      - echo "📁 Repository structure:"
       - find . -type f -name "*.py" -o -name "*.tf" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" -o -name "*.env" | head -20
   
+  # Build phase: Execute secret scanning
   build:
     commands:
-      - echo "Running TruffleHog scan..."
+      - echo "🚀 Running TruffleHog secret scan..."
       - trufflehog filesystem . --json > trufflehog-results.json 2>&1 || scan_failed=$?
-      - echo "=== SCAN RESULTS ==="
-      - cat trufflehog-results.json 2>/dev/null || echo "No JSON results"
-      - echo "=== SCAN EXIT CODE ${scan_failed:-0} ==="
+      - echo "📊 Scan completed with exit code: ${scan_failed:-0}"
+      - echo "📋 Scan results:"
+      - cat trufflehog-results.json 2>/dev/null || echo "No JSON results generated"
       - |
         if [ "${scan_failed:-0}" != "0" ]; then
-          echo "SECRETS DETECTED - BUILD FAILED"
-          echo "=== FILES IN REPOSITORY ==="
+          echo "❌ SECRETS DETECTED - BUILD FAILED"
+          echo "📁 Scanning repository for affected files..."
           find . -type f -name "*.py" -o -name "*.env" -o -name "*.txt" -o -name "*.json" | head -10
           SECRET_FILES="demo.env, demo_secrets.py, config.txt"
-          MESSAGE="ALERT: Secrets detected in files: ${SECRET_FILES}. Build failed. Check CodeBuild logs for details."
-          echo "Sending notification: $MESSAGE"
-          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "$MESSAGE" --subject "Secret Detection Alert" || true
+          MESSAGE="🚨 SECURITY ALERT: Secrets detected in files: ${SECRET_FILES}. Build failed. Check CodeBuild logs for details."
+          echo "📧 Sending security notification..."
+          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "$MESSAGE" --subject "🔐 Secret Detection Alert" || true
+          echo "🛑 Failing build to prevent deployment"
           exit 1
         else
-          echo "No secrets found"
+          echo "✅ No secrets found - build proceeding"
         fi
 
+# Artifacts: Store scan results for audit trail
 artifacts:
   files:
     - trufflehog-results.json

@@ -1,2 +1,0 @@
-# Test file to trigger pipeline
-timestamp=$(date)
