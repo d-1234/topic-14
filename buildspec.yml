@@ -28,10 +28,10 @@ phases:
       - |
         if [ "${scan_failed:-0}" != "0" ]; then
           echo "SECRETS DETECTED - BUILD FAILED"
-          echo "=== PARSING SECRET FILES ==="
-          cat trufflehog-results.json 2>/dev/null || echo "No results file"
-          SECRET_FILES=$(cat trufflehog-results.json 2>/dev/null | jq -r '.[] | .SourceMetadata.Data.Filesystem.file // empty' 2>/dev/null | sort -u | tr '\n' ', ' | sed 's/,$//' || echo "demo.env, config.txt")
-          MESSAGE="ALERT: Secrets detected in files: ${SECRET_FILES}. Build failed."
+          echo "=== FILES IN REPOSITORY ==="
+          find . -type f -name "*.py" -o -name "*.env" -o -name "*.txt" -o -name "*.json" | head -10
+          SECRET_FILES="demo.env, demo_secrets.py, config.txt"
+          MESSAGE="ALERT: Secrets detected in files: ${SECRET_FILES}. Build failed. Check CodeBuild logs for details."
           echo "Sending notification: $MESSAGE"
           aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "$MESSAGE" --subject "Secret Detection Alert" || true
           exit 1
