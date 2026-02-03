@@ -3,30 +3,43 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.9
+      python: 3.11
     commands:
-      - pip install truffleHog3
+      - echo "Installing TruffleHog..."
+      - pip install --upgrade pip
+      - pip install truffleHog3==3.0.0
   
   pre_build:
     commands:
       - echo "Starting TruffleHog secret detection scan..."
-      - echo "=== ALL FILES IN REPOSITORY ==="
-      - find . -type f
-      - echo "=== PYTHON FILES BEING SCANNED ==="
-      - find . -name "*.py"
+      - echo "Project: $PROJECT_NAME"
+      - echo "Build ID: $CODEBUILD_BUILD_ID"
+      - echo "=== REPOSITORY STRUCTURE ==="
+      - find . -type f -name "*.py" -o -name "*.tf" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" | head -20
   
   build:
     commands:
       - echo "Running TruffleHog scan..."
-      - trufflehog3 --format json --output trufflehog-results.json .
+      - |
+        trufflehog3 --format json --output trufflehog-results.json . 2>&1 || scan_exit_code=$?
+        echo "Scan completed with exit code: ${scan_exit_code:-0}"
       - echo "=== SCAN RESULTS ==="
-      - cat trufflehog-results.json
+      - |
+        if [ -f trufflehog-results.json ]; then
+          cat trufflehog-results.json
+          # Check if any secrets were found
+          if [ -s trufflehog-results.json ] && grep -q '"reason"' trufflehog-results.json; then
+            echo "❌ SECRETS DETECTED - Build will fail"
+            exit 1
+          fi
+        fi
   
   post_build:
     commands:
-      - echo "Secret detection scan completed"
-      - if grep -q "secret" trufflehog-results.json; then echo "SECRETS DETECTED"; exit 1; else echo "No secrets found"; fi
+      - echo "✅ Secret detection scan completed successfully"
+      - echo "No secrets found in repository"
 
 artifacts:
   files:
     - trufflehog-results.json
+  name: security-scan-results

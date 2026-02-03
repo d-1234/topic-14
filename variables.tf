@@ -26,12 +26,6 @@ variable "github_branch" {
   default     = "main"
 }
 
-variable "github_token" {
-  description = "GitHub personal access token"
-  type        = string
-  sensitive   = true
-}
-
 variable "notification_email" {
   description = "Email for pipeline notifications"
   type        = string

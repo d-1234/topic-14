@@ -1,8 +1,8 @@
 # Production Configuration Template
 # Copy this file to terraform.tfvars and fill in your values
+# IMPORTANT: Never commit terraform.tfvars to version control
 
 github_owner = "your-github-username"
 github_repo = "your-repository-name"
 github_branch = "main"
-github_token = "ghp_your_github_token_here"
 notification_email = "your-email@company.com"

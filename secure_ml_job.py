@@ -30,7 +30,7 @@ def main():
     config_manager = SecureMLConfig()
     
     # Get secrets and configuration dynamically
-    secret_name = 'ml-secrets-demo/api-key-v2'
+    secret_name = 'ml-secrets-demo/api-key-v3'
     parameter_name = '/ml-secrets-demo/config'
     
     api_secrets = config_manager.get_secret(secret_name)

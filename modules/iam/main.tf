@@ -101,14 +101,22 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "s3:GetObject",
-          "s3:PutObject",
-          "secretsmanager:*",
-          "ssm:*",
-          "iam:*"
+          "logs:PutLogEvents"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:logs:*:*:log-group:/aws/codebuild/${var.project_name}-*",
+          "arn:aws:logs:*:*:log-group:/aws/codebuild/${var.project_name}-*:*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.project_name}-*/*"
+        ]
       }
     ]
   })
@@ -131,8 +139,8 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::*",
-          "arn:aws:s3:::*/*"
+          "arn:aws:s3:::${var.project_name}-*",
+          "arn:aws:s3:::${var.project_name}-*/*"
         ]
       },
       {
@@ -141,7 +149,18 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "codebuild:BatchGetBuilds",
           "codebuild:StartBuild"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:codebuild:*:*:project/${var.project_name}-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "codestar-connections:UseConnection"
+        ]
+        Resource = [
+          "arn:aws:codestar-connections:*:*:connection/*"
+        ]
       }
     ]
   })

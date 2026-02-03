@@ -4,18 +4,37 @@
 .terraform/
 .terraform.lock.hcl
 terraform.tfvars
+terraform.tfplan
+*.tfplan
 
 # AWS
 .aws/
+aws-credentials
+
+# Secrets and sensitive files
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+secrets.json
+config.json
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
@@ -23,7 +42,17 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
 # Temporary files
 *.tmp
 *.zip
+*.tar.gz
+
+# Build artifacts
+trufflehog-results.json
+scan-results/
+
+# Backup files
+*.backup
+*.bak
