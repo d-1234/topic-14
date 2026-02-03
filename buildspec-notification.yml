@@ -1,0 +1,54 @@
+# =============================================================================
+# NOTIFICATION BUILDSPEC - STAGE 4
+# =============================================================================
+# This buildspec sends notifications based on analysis results
+# =============================================================================
+
+version: 0.2
+
+phases:
+  # Install phase: Set up notification tools
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo "📧 Setting up notification system..."
+      - pip install --upgrade pip
+      - yum install -y jq
+      - echo "✅ Notification tools ready"
+  
+  # Build phase: Send notifications based on results
+  build:
+    commands:
+      - echo "📨 Processing notification requirements..."
+      - |
+        if [ -f "analysis-results.json" ]; then
+          STATUS=$(cat analysis-results.json | jq -r '.status' 2>/dev/null || echo "UNKNOWN")
+          SECRET_COUNT=$(cat analysis-results.json | jq -r '.secret_count' 2>/dev/null || echo "0")
+          FILES=$(cat analysis-results.json | jq -r '.files' 2>/dev/null || echo "")
+          MESSAGE=$(cat analysis-results.json | jq -r '.message' 2>/dev/null || echo "Pipeline completed")
+          
+          echo "📊 Analysis Status: $STATUS"
+          echo "🔢 Secrets Found: $SECRET_COUNT"
+          echo "📁 Affected Files: $FILES"
+          
+          if [ "$STATUS" = "FAILED" ]; then
+            echo "🚨 SENDING SECURITY ALERT"
+            ALERT_MESSAGE="🚨 SECURITY VIOLATION: $SECRET_COUNT secrets detected in repository. Files: $FILES. Deployment blocked."
+            aws sns publish --topic-arn "$SNS_TOPIC_ARN" --message "$ALERT_MESSAGE" --subject "🔐 Critical Security Alert" || true
+          else
+            echo "✅ SENDING SUCCESS NOTIFICATION"
+            SUCCESS_MESSAGE="✅ Security scan passed. No secrets detected. Pipeline ready for deployment approval."
+            aws sns publish --topic-arn "$SNS_TOPIC_ARN" --message "$SUCCESS_MESSAGE" --subject "🛡️ Security Scan Complete" || true
+          fi
+        else
+          echo "⚠️ No analysis results found - sending default notification"
+          aws sns publish --topic-arn "$SNS_TOPIC_ARN" --message "Pipeline notification: Security scan stage completed" --subject "Pipeline Update" || true
+        fi
+      
+      - echo "📧 Notification stage complete"
+
+artifacts:
+  files:
+    - analysis-results.json
+  name: notification-complete
