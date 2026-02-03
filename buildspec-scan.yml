@@ -1,42 +1,32 @@
-# =============================================================================
-# SECURITY SCAN BUILDSPEC - STAGE 2
-# =============================================================================
-# This buildspec runs TruffleHog secret detection and outputs raw results
-# =============================================================================
-
 version: 0.2
 
 phases:
-  # Install phase: Set up TruffleHog scanner
   install:
     runtime-versions:
       python: 3.11
     commands:
-      - echo "🔧 Installing TruffleHog scanner..."
+      - echo "Installing TruffleHog scanner..."
       - pip install --upgrade pip
       - pip install truffleHog
-      - echo "✅ TruffleHog installation complete"
+      - echo "TruffleHog installation complete"
   
-  # Pre-build phase: Analyze repository structure
   pre_build:
     commands:
-      - echo "🔍 Preparing secret detection scan..."
-      - echo "📋 Project: $PROJECT_NAME"
-      - echo "🏗️ Build ID: $CODEBUILD_BUILD_ID"
-      - echo "📁 Repository files to scan:"
+      - echo "Preparing secret detection scan..."
+      - echo "Project $PROJECT_NAME"
+      - echo "Build ID $CODEBUILD_BUILD_ID"
+      - echo "Repository files to scan:"
       - find . -type f -name "*.py" -o -name "*.tf" -o -name "*.yml" -o -name "*.yaml" -o -name "*.json" -o -name "*.env" | head -20
   
-  # Build phase: Execute TruffleHog scan
   build:
     commands:
-      - echo "🚀 Running TruffleHog secret scan..."
+      - echo "Running TruffleHog secret scan..."
       - trufflehog filesystem . --json > trufflehog-results.json 2>&1 || scan_exit_code=$?
-      - echo "📊 Scan completed with exit code: ${scan_exit_code:-0}"
-      - echo "📄 Raw scan results:"
+      - echo "Scan completed with exit code ${scan_exit_code:-0}"
+      - echo "Raw scan results:"
       - cat trufflehog-results.json 2>/dev/null || echo "No results file generated"
-      - echo "✅ Security scan stage complete"
+      - echo "Security scan stage complete"
 
-# Output artifacts for next stage
 artifacts:
   files:
     - trufflehog-results.json
