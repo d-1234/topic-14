@@ -20,14 +20,12 @@ phases:
   build:
     commands:
       - echo "Running TruffleHog scan..."
-      - |
-        trufflehog3 --format json --output trufflehog-results.json . 2>&1 || scan_exit_code=$?
-        echo "Scan completed with exit code: ${scan_exit_code:-0}"
+      - trufflehog3 --format json --output trufflehog-results.json . 2>&1 || scan_exit_code=$?
+      - echo "Scan completed with exit code: ${scan_exit_code:-0}"
       - echo "=== SCAN RESULTS ==="
       - |
         if [ -f trufflehog-results.json ]; then
           cat trufflehog-results.json
-          # Check if any secrets were found
           if [ -s trufflehog-results.json ] && grep -q '"reason"' trufflehog-results.json; then
             echo "❌ SECRETS DETECTED - Build will fail"
             exit 1
