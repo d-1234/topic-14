@@ -20,12 +20,11 @@ phases:
   build:
     commands:
       - echo "Running TruffleHog scan..."
-      - trufflehog filesystem . --json > trufflehog-results.json || true
+      - trufflehog filesystem . --json --fail > trufflehog-results.json 2>&1 || scan_failed=$?
       - echo "=== SCAN RESULTS ==="
-      - cat trufflehog-results.json || echo "No results file"
-      - echo "=== FILE SIZE CHECK ==="
-      - ls -la trufflehog-results.json || echo "File not found"
-      - if [ -s trufflehog-results.json ]; then echo "SECRETS DETECTED - FAILING BUILD"; cat trufflehog-results.json; exit 1; else echo "No secrets in results file"; fi
+      - cat trufflehog-results.json 2>/dev/null || echo "No JSON results"
+      - echo "=== SCAN EXIT CODE: ${scan_failed:-0} ==="
+      - if [ "${scan_failed:-0}" != "0" ]; then echo "SECRETS DETECTED - BUILD FAILED"; exit 1; fi
   
   post_build:
     commands:
