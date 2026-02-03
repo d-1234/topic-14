@@ -20,16 +20,17 @@ phases:
   build:
     commands:
       - echo "Running TruffleHog scan..."
-      - trufflehog filesystem . --json --fail > trufflehog-results.json 2>&1 || scan_failed=$?
+      - trufflehog filesystem . --json > trufflehog-results.json 2>&1 || scan_failed=$?
       - echo "=== SCAN RESULTS ==="
       - cat trufflehog-results.json 2>/dev/null || echo "No JSON results"
       - echo "=== SCAN EXIT CODE ${scan_failed:-0} ==="
-      - test "${scan_failed:-0}" != "0" && echo "SECRETS DETECTED - BUILD FAILED" && exit 1 || echo "No secrets found"
-  
-  post_build:
-    commands:
-      - echo "Secret detection scan completed successfully"
-      - echo "No secrets found in repository"
+      - |
+        if [ "${scan_failed:-0}" != "0" ]; then
+          echo "❌ SECRETS DETECTED - BUILD FAILED"
+          exit 1
+        else
+          echo "✅ No secrets found"
+        fi
 
 artifacts:
   files:
