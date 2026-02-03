@@ -23,7 +23,9 @@ phases:
       - trufflehog filesystem . --json > trufflehog-results.json || true
       - echo "=== SCAN RESULTS ==="
       - cat trufflehog-results.json || echo "No results file"
-      - if [ -s trufflehog-results.json ]; then echo "SECRETS DETECTED"; exit 1; fi
+      - echo "=== FILE SIZE CHECK ==="
+      - ls -la trufflehog-results.json || echo "File not found"
+      - if [ -s trufflehog-results.json ]; then echo "SECRETS DETECTED - FAILING BUILD"; cat trufflehog-results.json; exit 1; else echo "No secrets in results file"; fi
   
   post_build:
     commands:
