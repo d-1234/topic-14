@@ -27,6 +27,7 @@ phases:
       - |
         if [ "${scan_failed:-0}" != "0" ]; then
           echo "❌ SECRETS DETECTED - BUILD FAILED"
+          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "ALERT: Secrets detected in repository! Build failed." --subject "Secret Detection Alert" || true
           exit 1
         else
           echo "✅ No secrets found"
