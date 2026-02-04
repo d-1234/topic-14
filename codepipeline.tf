@@ -118,24 +118,6 @@ resource "aws_codepipeline" "ml_secrets_pipeline" {
       }
     }
   }
-
-  # Stage 3: Notification - Send alerts based on scan results
-  stage {
-    name = "Notification"
-
-    action {
-      name             = "SendNotification"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["scan_results"]
-      version          = "1"
-
-      configuration = {
-        ProjectName = module.cicd.notification_project_name
-      }
-    }
-  }
   
   tags = {
     Name        = "${var.project_name} Secret Detection Pipeline"

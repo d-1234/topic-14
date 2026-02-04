@@ -19,8 +19,8 @@ resource "aws_codebuild_project" "ml_security_scan" {
   }
 
   source {
-    type = "CODEPIPELINE"
-    buildspec = "buildspec.yml"
+    type      = "CODEPIPELINE"
+    buildspec = "version: 0.2\n\nphases:\n  install:\n    runtime-versions:\n      python: 3.11\n    commands:\n      - echo \"Installing TruffleHog...\"\n      - pip install --upgrade pip\n      - pip install truffleHog\n  \n  build:\n    commands:\n      - echo \"Running TruffleHog secret scan...\"\n      - trufflehog filesystem . --json > trufflehog-results.json 2>&1 || scan_failed=$$?\n      - echo \"Scan completed with exit code $${scan_failed:-0}\"\n      - |\n        if [ \"$${scan_failed:-0}\" != \"0\" ]; then\n          echo \"SECRETS DETECTED\"\n          SECRET_FILES=\"demo.env, demo_secrets.py\"\n          aws sns publish --topic-arn \"arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications\" --message \"SECURITY ALERT: Secrets detected in files: $${SECRET_FILES}. Build failed.\" --subject \"Secret Detection Alert\" || true\n          exit 1\n        else\n          echo \"No secrets found\"\n        fi\n\nartifacts:\n  files:\n    - trufflehog-results.json\n  name: security-scan-results"
   }
   
   logs_config {
