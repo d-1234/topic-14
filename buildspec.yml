@@ -29,15 +29,17 @@ phases:
         if [ "${scan_failed:-0}" != "0" ]; then
           echo "SECRETS DETECTED"
           SECRET_FILES=$(find . -name "*.env" -o -name "*secrets*" -o -name "config.txt" | tr '\n' ', ' | sed 's/,$//' || echo "demo.env, demo_secrets.py")
-          MESSAGE="SECURITY ALERT: Secrets detected in files: ${SECRET_FILES}. Build failed. Check CodeBuild logs for details."
-          echo "Sending notification: $MESSAGE"
-          aws sns publish --topic-arn "arn:aws:sns:us-east-1:361509912577:ml-secrets-demo-pipeline-notifications" --message "$MESSAGE" --subject "Secret Detection Alert" || true
-          exit 1
+          echo "SECURITY_STATUS=FAILED" > scan-status.txt
+          echo "SECRET_FILES=${SECRET_FILES}" >> scan-status.txt
+          echo "Secrets found in: ${SECRET_FILES}"
         else
           echo "No secrets found"
+          echo "SECURITY_STATUS=PASSED" > scan-status.txt
+          echo "SECRET_FILES=" >> scan-status.txt
         fi
 
 artifacts:
   files:
     - trufflehog-results.json
+    - scan-status.txt
   name: security-scan-results
