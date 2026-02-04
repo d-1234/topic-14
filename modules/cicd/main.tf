@@ -20,7 +20,7 @@ resource "aws_codebuild_project" "ml_security_scan" {
 
   source {
     type = "CODEPIPELINE"
-    buildspec = "buildspec-scan.yml"
+    buildspec = "buildspec.yml"
   }
   
   logs_config {
@@ -33,49 +33,6 @@ resource "aws_codebuild_project" "ml_security_scan" {
   tags = {
     Name        = "${var.project_name} Security Scanner"
     Description = "TruffleHog secret detection scanning"
-  }
-}
-
-# CodeBuild project for results analysis
-resource "aws_codebuild_project" "results_analysis" {
-  name         = "${var.project_name}-results-analysis"
-  service_role = var.codebuild_role_arn
-
-  artifacts {
-    type = "CODEPIPELINE"
-  }
-
-  environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
-    type         = "LINUX_CONTAINER"
-    
-    environment_variable {
-      name  = "PROJECT_NAME"
-      value = var.project_name
-    }
-    
-    environment_variable {
-      name  = "SNS_TOPIC_ARN"
-      value = var.sns_topic_arn
-    }
-  }
-
-  source {
-    type = "CODEPIPELINE"
-    buildspec = "buildspec-analysis.yml"
-  }
-  
-  logs_config {
-    cloudwatch_logs {
-      status = "ENABLED"
-      group_name = "/aws/codebuild/${var.project_name}-results-analysis"
-    }
-  }
-  
-  tags = {
-    Name        = "${var.project_name} Results Analyzer"
-    Description = "Analyzes TruffleHog scan results and makes decisions"
   }
 }
 

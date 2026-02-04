@@ -119,26 +119,7 @@ resource "aws_codepipeline" "ml_secrets_pipeline" {
     }
   }
 
-  # Stage 3: Results Analysis - Parse scan results and make decisions
-  stage {
-    name = "ResultsAnalysis"
-
-    action {
-      name             = "AnalyzeScanResults"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["scan_results"]
-      output_artifacts = ["analysis_output"]
-      version          = "1"
-
-      configuration = {
-        ProjectName = module.cicd.results_analysis_project_name
-      }
-    }
-  }
-
-  # Stage 4: Notification - Send alerts via CodeBuild
+  # Stage 3: Notification - Send alerts based on scan results
   stage {
     name = "Notification"
 
@@ -147,29 +128,11 @@ resource "aws_codepipeline" "ml_secrets_pipeline" {
       category         = "Build"
       owner            = "AWS"
       provider         = "CodeBuild"
-      input_artifacts  = ["analysis_output"]
+      input_artifacts  = ["scan_results"]
       version          = "1"
 
       configuration = {
         ProjectName = module.cicd.notification_project_name
-      }
-    }
-  }
-
-  # Stage 5: Deployment Gate - Manual approval for deployment
-  stage {
-    name = "DeploymentGate"
-
-    action {
-      name     = "ApprovalGate"
-      category = "Approval"
-      owner    = "AWS"
-      provider = "Manual"
-      version  = "1"
-
-      configuration = {
-        NotificationArn = module.notifications.sns_topic_arn
-        CustomData      = "Review security scan results before approving deployment."
       }
     }
   }
