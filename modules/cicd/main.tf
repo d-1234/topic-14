@@ -58,7 +58,7 @@ resource "aws_codebuild_project" "notification" {
 
   source {
     type = "CODEPIPELINE"
-    buildspec = "buildspec-notification.yml"
+    buildspec = "buildspec.yml"
   }
   
   logs_config {
