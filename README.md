@@ -202,4 +202,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**⚠️ Security Note:** This pipeline is designed to prevent secrets from reaching production. Always review and rotate any exposed credentials immediately.
+**⚠️ Security Note:** This pipeline is designed to prevent secrets from reaching production. Always review and rotate any exposed credentials immediately.# Pipeline trigger
